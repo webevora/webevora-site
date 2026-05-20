@@ -8,8 +8,8 @@ import App from './App';
 const redirect = sessionStorage.redirect;
 delete sessionStorage.redirect;
 
-if (redirect && redirect !== location.href) {
-  history.replaceState(null, null, redirect);
+if (redirect && redirect !== window.location.href) {
+  window.history.replaceState(null, null, redirect);
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
