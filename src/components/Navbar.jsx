@@ -1,6 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Fragment, useEffect, useRef, useState } from 'react';
-import logo from 'C:/Users/CHAITANYA/Downloads/Webevora.png';
+import logo from '../image/Webevora.png';
 
 const navItems = [
   {
