@@ -26,11 +26,6 @@ function ScrollRevealManager() {
   const location = useLocation();
 
   useEffect(() => {
-    const nodes = Array.from(document.querySelectorAll(".sr-reveal"));
-    if (!nodes.length) {
-      return undefined;
-    }
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -47,12 +42,34 @@ function ScrollRevealManager() {
       },
     );
 
-    nodes.forEach((node, index) => {
-      node.style.setProperty("--reveal-delay", `${(index % 8) * 70}ms`);
-      observer.observe(node);
+    const observedNodes = new Set();
+
+    function observeNewNodes() {
+      const nodes = document.querySelectorAll(".sr-reveal");
+      nodes.forEach((node, index) => {
+        if (!observedNodes.has(node)) {
+          observedNodes.add(node);
+          node.style.setProperty("--reveal-delay", `${(index % 8) * 70}ms`);
+          observer.observe(node);
+        }
+      });
+    }
+
+    observeNewNodes();
+
+    const mutationObserver = new MutationObserver(() => {
+      observeNewNodes();
     });
 
-    return () => observer.disconnect();
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
   }, [location.pathname]);
 
   return null;
