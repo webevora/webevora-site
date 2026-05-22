@@ -1,6 +1,10 @@
 import os
 from dataclasses import dataclass
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 def _get_cors_origins() -> list[str]:
     raw_origins = os.getenv("WEBENTRA_CORS_ORIGINS", "").strip()

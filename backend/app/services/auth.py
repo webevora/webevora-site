@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, Response, status
 from sqlalchemy import delete, select
@@ -93,7 +93,7 @@ class AdminAuthService:
             secure=settings.session_cookie_secure,
             samesite="lax",
             max_age=max_age,
-            expires=expires_at,
+            expires=expires_at.replace(tzinfo=timezone.utc),
             path="/",
         )
 
