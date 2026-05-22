@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: webentra-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: WEBENTRA_DATABASE_URL
+        value: sqlite:///./webentra.db
+      - key: WEBENTRA_ADMIN_EMAIL
+        value: admin@webentra.com
+      - key: WEBENTRA_ADMIN_PASSWORD
+        value: Admin@12345
+      - key: WEBENTRA_SESSION_COOKIE_SECURE
+        value: "true"
