@@ -9,6 +9,9 @@ function resolveApiBaseUrl() {
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return `${protocol}//${hostname}:8000`;
     }
+    if (hostname === 'webevora.com') {
+      return 'https://api.webevora.com';
+    }
     return origin.replace(/\/$/, '');
   }
 
@@ -47,12 +50,18 @@ export async function parseApiResponse(response) {
     try {
       data = JSON.parse(text);
     } catch {
-      data = { detail: text };
+      data = {};
     }
   }
 
   if (!response.ok) {
-    const error = new Error(data.detail || data.message || 'Request failed');
+    const apiMessage = data.detail || data.message;
+    const fallbackMessage =
+      response.status === 405
+        ? 'Backend API route not available. Confirm your FastAPI backend is deployed and REACT_APP_API_BASE_URL is set correctly.'
+        : `API request failed with status ${response.status} ${response.statusText}.`;
+
+    const error = new Error(apiMessage || fallbackMessage);
     error.status = response.status;
     throw error;
   }

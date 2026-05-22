@@ -55,10 +55,14 @@ function useAdminData() {
         parseApiResponse(blogsResponse)
       ]);
 
-      setDashboard(dashboardData);
-      setAllLeads(leadsData);
-      setServices(servicesData);
-      setBlogs(blogsData);
+      setDashboard({
+        admin: dashboardData?.admin || null,
+        summary: dashboardData?.summary || [],
+        recent_leads: dashboardData?.recent_leads || []
+      });
+      setAllLeads(leadsData || []);
+      setServices(servicesData || []);
+      setBlogs(blogsData || []);
 
       if (dashboardData.admin) {
         setAdminProfile(dashboardData.admin);

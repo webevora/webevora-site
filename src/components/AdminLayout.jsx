@@ -28,7 +28,7 @@ function AdminLayout({
   children
 }) {
   return (
-    <section className="admin-dash-page sr-reveal">
+    <section className="admin-dash-page sr-reveal" style={{ color: '#0f172a' }}>
       <div className="admin-dash-shell sr-reveal">
         <aside className="admin-dash-sidebar sr-reveal">
           <div className="admin-dash-sidebar__brand">

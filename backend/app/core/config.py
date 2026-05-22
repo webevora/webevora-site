@@ -14,6 +14,7 @@ def _get_cors_origins() -> list[str]:
     return [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://webevora.com",
     ]
 
 
