@@ -794,14 +794,15 @@ export default function Chatbot() {
               </AnimatePresence>
 
               {/* Bot Character Avatar */}
-              <motion.div
-                animate={avatar.idleAnim}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleToggle}
-                className="relative w-20 h-20 flex items-center justify-center cursor-pointer group"
-                style={{ perspective: 1000 }}
-              >
+              <div className="chatbot-avatar-wrapper">
+                <motion.div
+                  animate={avatar.idleAnim}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleToggle}
+                  className="relative w-20 h-20 flex items-center justify-center cursor-pointer group"
+                  style={{ perspective: 1000 }}
+                >
                 {/* Dynamic Mouse-Following Shadow / Aura */}
                 {advancedEffects && (
                   <motion.div
@@ -901,6 +902,7 @@ export default function Chatbot() {
                 </AnimatePresence>
 
               </motion.div>
+            </div>
             </motion.div>
           )}
         </AnimatePresence>

@@ -8797,52 +8797,145 @@ body.page-loading {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .home-services-slider-wrap {
+        display: none;
+    }
+
+    .services-slider__meta {
+        margin-bottom: 12px;
+    }
+
     .services-slider-container {
-        height: clamp(350px, 50vw, 400px);
+        height: auto;
+        min-height: 0;
+        padding: 0 38px;
+        overflow: visible;
+    }
+
+    .services-swiper {
+        height: auto;
+        overflow: visible;
+    }
+
+    .services-swiper .swiper-wrapper {
+        align-items: stretch;
+    }
+
+    .services-swiper .swiper-slide {
+        height: auto !important;
     }
 
     .services-slider-card {
-        max-width: 320px;
-        max-height: 360px;
+        flex-direction: column;
+        max-width: 100%;
+        max-height: none;
+        min-height: auto;
+        height: auto;
+        border-radius: 16px;
+    }
+
+    .services-slider-card__image {
+        width: 100%;
+        height: 140px;
+        flex-shrink: 0;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .services-slider-card__overlay {
+        display: none;
+    }
+
+    .services-slider-card__content {
+        width: 100%;
+        padding: 14px 16px 16px;
+        gap: 8px;
+    }
+
+    .services-slider-card__icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+    }
+
+    .services-slider-card__title {
+        font-size: 1.05rem;
+    }
+
+    .services-slider-card__desc {
+        font-size: 0.82rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        line-height: 1.5;
+    }
+
+    .services-slider-card__list {
+        gap: 6px;
+    }
+
+    .services-slider-card__list-item {
+        font-size: 0.8rem;
+        gap: 6px;
     }
 
     .swiper-button-prev,
     .swiper-button-next {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
     }
 
     .swiper-button-prev {
-        left: 10px;
+        left: 2px;
     }
 
     .swiper-button-next {
-        right: 10px;
-    }
-
-    .services-slider-card__content {
-        left: 10px;
-        right: 10px;
-        bottom: 10px;
+        right: 2px;
     }
 }
 
 @media (max-width: 480px) {
+    .home-services-slider-wrap {
+        padding: 12px;
+    }
+
     .services-slider-container {
-        height: 320px;
+        padding: 0 34px;
     }
 
     .services-slider-card {
-        max-width: 280px;
-        max-height: 320px;
+        border-radius: 12px;
+    }
+
+    .services-slider-card__image {
+        height: 120px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .services-slider-card__content {
+        padding: 12px 14px 14px;
+        gap: 6px;
     }
 
     .services-slider-card__title {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
     }
 
     .services-slider-card__desc {
-        font-size: 0.7rem;
+        font-size: 0.78rem;
+    }
+
+    .swiper-button-prev,
+    .swiper-button-next {
+        width: 28px;
+        height: 28px;
+    }
+
+    .swiper-button-prev {
+        left: 0;
+    }
+
+    .swiper-button-next {
+        right: 0;
     }
 }
 
@@ -9743,7 +9836,7 @@ body.page-loading {
     }
 
     main.container {
-        padding-top: 8px;
+        padding-top: 96px;
         padding-bottom: 24px;
     }
 
@@ -10320,7 +10413,6 @@ body.page-loading {
     .blog-card,
     .contact-form,
     .contact-card,
-    .services-slider-card,
     .nav-dropdown,
     .simple-dropdown {
         backdrop-filter: none !important;
@@ -10328,6 +10420,12 @@ body.page-loading {
         background-color: #ffffff !important;
         box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
         border-color: rgba(15, 23, 42, 0.08) !important;
+    }
+
+    /* Keep slider card dark-themed but remove expensive effects */
+    .services-slider-card {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
     /* 2. Freeze rendering-heavy transitions and animations on scroll */
@@ -10338,13 +10436,39 @@ body.page-loading {
         will-change: auto !important;
     }
 
-    /* 3. Disable heavy floating/glowing animations on the chatbot to save GPU cycles on scroll */
-    .chatbot-container,
-    .chatbot-container * {
+    /* 3. Optimize chatbot on mobile — reduce size and disable heavy GPU effects */
+    .chatbot-container {
+        bottom: 12px !important;
+        right: 12px !important;
+    }
+
+    /* Make chatbot avatar smaller on mobile — use scale wrapper to preserve framer motion animations */
+    .chatbot-avatar-wrapper {
+        display: block;
+        transform: scale(0.7);
+        transform-origin: bottom right;
+        transition: transform 0.3s ease;
+    }
+
+    /* Disable only the expensive effects, not all animations */
+    .chatbot-container .animate-gradient-border {
         animation: none !important;
-        transition: none !important;
-        will-change: auto !important;
-        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1) !important;
+    }
+
+    /* Disable particle rotation and aura glow */
+    .chatbot-container .blur-\\[20px\\] {
+        display: none !important;
+    }
+
+    .chatbot-container .pointer-events-none[class*="animate"] {
+        display: none !important;
+    }
+
+    /* Keep chatbot panel manageable on mobile */
+    .chatbot-container > div > div[class*="w-\\[380px\\]"] {
+        width: calc(100vw - 24px) !important;
+        max-width: 340px !important;
+        max-height: 70vh !important;
     }
 
     /* 4. Disable will-change GPU allocation on mobile to prevent memory exhaustion */
