@@ -21,6 +21,7 @@ import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SeoManager from "./components/SeoManager";
 import Chatbot from "./components/Chatbot";
+import SmoothScroller from "./components/SmoothScroller";
 
 function ScrollRevealManager() {
   const location = useLocation();
@@ -42,33 +43,32 @@ function ScrollRevealManager() {
       },
     );
 
-    const observedNodes = new Set();
+    const observeNodes = () => {
+      const nodes = [];
+      const main = document.querySelector("main");
+      if (main) {
+        main.querySelectorAll(".sr-reveal").forEach((node) => nodes.push(node));
+      }
+      const footer = document.querySelector("footer");
+      if (footer) {
+        footer.querySelectorAll(".sr-reveal").forEach((node) => nodes.push(node));
+      }
 
-    function observeNewNodes() {
-      const nodes = document.querySelectorAll(".sr-reveal");
       nodes.forEach((node, index) => {
-        if (!observedNodes.has(node)) {
-          observedNodes.add(node);
+        // Only set delay once
+        if (!node.style.getPropertyValue("--reveal-delay")) {
           node.style.setProperty("--reveal-delay", `${(index % 8) * 70}ms`);
-          observer.observe(node);
         }
+        observer.observe(node);
       });
-    }
+    };
 
-    observeNewNodes();
-
-    const mutationObserver = new MutationObserver(() => {
-      observeNewNodes();
-    });
-
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+    // Run observation slightly after render to ensure DOM is ready
+    const timer = setTimeout(observeNodes, 100);
 
     return () => {
+      clearTimeout(timer);
       observer.disconnect();
-      mutationObserver.disconnect();
     };
   }, [location.pathname]);
 
@@ -80,6 +80,21 @@ function App() {
   const isAdminRoute = location.pathname.startsWith("/admin");
   const isBlogArticle = location.pathname.startsWith("/blog/");
   const isHomeRoute = location.pathname === "/";
+
+  // Smooth scroll to hash anchor on navigation
+  useEffect(() => {
+    if (location.hash) {
+      const id = decodeURIComponent(location.hash.replace("#", ""));
+      const element = document.getElementById(id);
+      if (element) {
+        // Delay slightly to allow the DOM/Lenis to initialize
+        const timer = setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 300);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [location.pathname, location.hash]);
 
   const pageMeta = {
     "/": {
@@ -175,6 +190,7 @@ function App() {
   return (
     <div className="app-shell">
       <SeoManager {...currentSeo} />
+      <SmoothScroller />
       <ScrollRevealManager />
       <PageLoader />
       {!isAdminRoute ? <Navbar /> : null}

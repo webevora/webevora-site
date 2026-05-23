@@ -388,6 +388,7 @@ function Home() {
                       alt={`${card.title} service`}
                       className="services-slider-card__image"
                       loading="lazy"
+                      decoding="async"
                       onError={(e) => {
                         console.log('Image load error:', e.target.src);
                         console.log('Card image import:', card.image);

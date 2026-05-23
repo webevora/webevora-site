@@ -9,40 +9,50 @@ const OurWorks = () => {
   const projectCardsRef = useRef([]);
 
   useEffect(() => {
+    const timeouts = [];
+
     // Animate hero title with CSS
     if (heroTitleRef.current) {
-      setTimeout(() => {
-        heroTitleRef.current.classList.add('animate-in');
+      const t1 = setTimeout(() => {
+        if (heroTitleRef.current) {
+          heroTitleRef.current.classList.add('animate-in');
+        }
       }, 400);
+      timeouts.push(t1);
     }
 
     // Animate hero description with CSS
     if (heroDescRef.current) {
-      setTimeout(() => {
-        heroDescRef.current.classList.add('animate-in');
+      const t2 = setTimeout(() => {
+        if (heroDescRef.current) {
+          heroDescRef.current.classList.add('animate-in');
+        }
       }, 1400);
+      timeouts.push(t2);
     }
 
     // Animate featured cards with stagger
     featuredCardsRef.current.forEach((card, index) => {
       if (card) {
-        setTimeout(() => {
+        const t3 = setTimeout(() => {
           card.classList.add('animate-in');
         }, 2500 + (index * 150));
+        timeouts.push(t3);
       }
     });
 
     // Animate project cards with stagger
     projectCardsRef.current.forEach((card, index) => {
       if (card) {
-        setTimeout(() => {
+        const t4 = setTimeout(() => {
           card.classList.add('animate-in');
         }, 4000 + (index * 100));
+        timeouts.push(t4);
       }
     });
 
     return () => {
-      // Cleanup if needed
+      timeouts.forEach(clearTimeout);
     };
   }, []);
 
@@ -170,7 +180,7 @@ const OurWorks = () => {
                 className="featured-card animate-card"
               >
                 <div className="featured-image">
-                  <img src={project.image} alt={project.title} />
+                  <img src={project.image} alt={project.title} loading="lazy" decoding="async" />
                   <div className="featured-overlay">
                     <div className="featured-content">
                       <h3>{project.title}</h3>
@@ -221,7 +231,7 @@ const OurWorks = () => {
                 className="project-card animate-card"
               >
                 <div className="project-image">
-                  <img src={project.image} alt={project.title} />
+                  <img src={project.image} alt={project.title} loading="lazy" decoding="async" />
                   <div className="project-overlay">
                     <div className="project-content">
                       <h3>{project.title}</h3>

@@ -11,14 +11,16 @@ function PageLoader() {
     const start = Date.now();
     let finished = false;
     let fallbackId = null;
+    let exitTimeoutId = null;
+    let visibleTimeoutId = null;
 
     const finish = () => {
       if (finished) return;
       finished = true;
       const wait = Math.max(0, MIN_VISIBLE_MS - (Date.now() - start));
-      window.setTimeout(() => {
+      exitTimeoutId = window.setTimeout(() => {
         setExiting(true);
-        window.setTimeout(() => {
+        visibleTimeoutId = window.setTimeout(() => {
           setVisible(false);
           document.body.classList.remove('page-loading');
         }, 560);
@@ -34,6 +36,8 @@ function PageLoader() {
 
     return () => {
       if (fallbackId != null) window.clearTimeout(fallbackId);
+      if (exitTimeoutId != null) window.clearTimeout(exitTimeoutId);
+      if (visibleTimeoutId != null) window.clearTimeout(visibleTimeoutId);
       window.removeEventListener('load', finish);
       document.body.classList.remove('page-loading');
     };

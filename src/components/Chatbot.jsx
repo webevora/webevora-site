@@ -242,6 +242,19 @@ export default function Chatbot() {
   });
   const messagesEndRef = useRef(null);
   const botRef = useRef(null);
+  const isMountedRef = useRef(true);
+  const streamIntervalRef = useRef(null);
+  const timeoutsRef = useRef([]);
+  const safeSetTimeout = (callback, delay) => {
+    const id = setTimeout(() => {
+      timeoutsRef.current = timeoutsRef.current.filter(t => t !== id);
+      if (isMountedRef.current) {
+        callback();
+      }
+    }, delay);
+    timeoutsRef.current.push(id);
+    return id;
+  };
   const navigate = useNavigate();
 
   const mouseX = useMotionValue(0);
@@ -263,15 +276,27 @@ export default function Chatbot() {
   const shadowY = useTransform(smoothY, [-1, 1], [15, -15]);
 
   useEffect(() => {
+    let ticking = false;
+    let lastTime = 0;
+    const throttleMs = 32; // ~30fps throttle
+
     const handleMouseMove = (e) => {
-      if (!botRef.current) return;
-      const rect = botRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const deltaX = (e.clientX - centerX) / (window.innerWidth / 2);
-      const deltaY = (e.clientY - centerY) / (window.innerHeight / 2);
-      mouseX.set(Math.max(-1, Math.min(1, deltaX)));
-      mouseY.set(Math.max(-1, Math.min(1, deltaY)));
+      const now = performance.now();
+      if (!ticking && now - lastTime >= throttleMs) {
+        window.requestAnimationFrame(() => {
+          if (botRef.current) {
+            const centerX = window.innerWidth - 64;
+            const centerY = window.innerHeight - 64;
+            const deltaX = (e.clientX - centerX) / (window.innerWidth / 2);
+            const deltaY = (e.clientY - centerY) / (window.innerHeight / 2);
+            mouseX.set(Math.max(-1, Math.min(1, deltaX)));
+            mouseY.set(Math.max(-1, Math.min(1, deltaY)));
+          }
+          lastTime = performance.now();
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     const handleMouseLeave = () => {
       mouseX.set(0);
@@ -284,6 +309,18 @@ export default function Chatbot() {
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, [mouseX, mouseY]);
+
+  // Cleanup stream interval and timeouts on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (streamIntervalRef.current) {
+        clearInterval(streamIntervalRef.current);
+      }
+      timeoutsRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   useEffect(() => {
     const isClosedBefore = localStorage.getItem('chatbotClosed');
@@ -360,7 +397,7 @@ export default function Chatbot() {
     // Simulate thinking delay
     const thinkDelay = 600 + Math.random() * 500;
 
-    setTimeout(() => {
+    safeSetTimeout(() => {
       setIsTyping(false);
 
       // Add empty bot message container for streaming
@@ -371,7 +408,8 @@ export default function Chatbot() {
       let wordIndex = 0;
       let currentText = '';
 
-      const streamInterval = setInterval(() => {
+      if (streamIntervalRef.current) clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = setInterval(() => {
         if (wordIndex < words.length) {
           currentText += (wordIndex === 0 ? '' : ' ') + words[wordIndex];
           wordIndex++;
@@ -381,18 +419,21 @@ export default function Chatbot() {
             return updated;
           });
         } else {
-          clearInterval(streamInterval);
+          if (streamIntervalRef.current) {
+            clearInterval(streamIntervalRef.current);
+            streamIntervalRef.current = null;
+          }
 
           if (action.action) {
-            setTimeout(() => {
+            safeSetTimeout(() => {
               navigate(action.action);
               setIsOpen(false);
             }, 1500);
           } else {
-            setTimeout(() => {
+            safeSetTimeout(() => {
               // Delayed follow-up question
               setIsTyping(true);
-              setTimeout(() => {
+              safeSetTimeout(() => {
                 setIsTyping(false);
                 setMessages(prev => [...prev, { type: 'bot', text: 'Is there anything else you would like to explore? 🚀' }]);
               }, 800);
@@ -425,7 +466,7 @@ export default function Chatbot() {
     // 3. Realistic Thinking/Typing delay based on input/output length
     const thinkingTime = Math.min(2000, Math.max(600, userMsg.length * 12 + Math.random() * 400));
 
-    setTimeout(() => {
+    safeSetTimeout(() => {
       setIsTyping(false);
 
       // 4. Add empty container for streaming
@@ -436,7 +477,8 @@ export default function Chatbot() {
       let wordIndex = 0;
       let currentText = '';
 
-      const streamInterval = setInterval(() => {
+      if (streamIntervalRef.current) clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = setInterval(() => {
         if (wordIndex < words.length) {
           currentText += (wordIndex === 0 ? '' : ' ') + words[wordIndex];
           wordIndex++;
@@ -446,7 +488,10 @@ export default function Chatbot() {
             return updated;
           });
         } else {
-          clearInterval(streamInterval);
+          if (streamIntervalRef.current) {
+            clearInterval(streamIntervalRef.current);
+            streamIntervalRef.current = null;
+          }
         }
       }, 30); // 30ms per word creates an extremely smooth, premium, and alive streaming effect!
     }, thinkingTime);
@@ -500,15 +545,15 @@ export default function Chatbot() {
         .ai-message-content pre code { background-color: transparent; color: inherit; padding: 0; }
       `}</style>
 
-      <div className="fixed bottom-6 right-6 z-[9999] flex items-end justify-end">
+      <div className="chatbot-container fixed bottom-6 right-6 z-[9999] flex items-end justify-end">
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, x: 20, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, x: -16, y: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 20, y: 20, scale: 0.9 }}
-              transition={{ duration: 0.4, type: "spring", stiffness: 200, damping: 20 }}
-              className={`absolute right-full bottom-0 origin-bottom-right mb-0 mr-2 w-[380px] max-w-[calc(100vw-6rem)] rounded-2xl p-[2px] bg-gradient-to-r ${avatar.theme} animate-gradient-border shadow-2xl ${advancedEffects ? avatar.aura : 'shadow-slate-500/20'} ${isMinimized ? 'h-auto' : 'h-[600px] max-h-[80vh]'}`}
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 30, scale: 0.95 }}
+              transition={{ duration: 0.4, type: "spring", stiffness: 220, damping: 22 }}
+              className={`absolute right-0 bottom-24 md:right-full md:bottom-0 md:mr-4 origin-bottom-right w-[380px] max-w-[calc(100vw-2rem)] md:max-w-[380px] rounded-2xl p-[2px] bg-gradient-to-r ${avatar.theme} animate-gradient-border shadow-2xl ${advancedEffects ? avatar.aura : 'shadow-slate-500/20'} ${isMinimized ? 'h-auto' : 'h-[600px] max-h-[80vh]'}`}
             >
               <div className="w-full h-full bg-white/95 backdrop-blur-xl rounded-[14px] overflow-hidden flex flex-col relative">
 

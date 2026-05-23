@@ -219,6 +219,7 @@ function Services() {
                       alt={`${card.title} service`}
                       className="services-slider-card__image"
                       loading="lazy"
+                      decoding="async"
                     />
                     <div className="services-slider-card__content">
                       <span className="services-slider-card__icon">{card.icon}</span>
@@ -266,6 +267,7 @@ function Services() {
               return (
                 <article
                   key={service.title}
+                  id={service.title.toLowerCase().replace(/\s+/g, '-')}
                   className="service-card service-card--stack"
                   style={{ '--card-index': index }}
                 >

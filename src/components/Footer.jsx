@@ -43,7 +43,7 @@ function Footer() {
               className="site-footer__logo"
               src={logo}
               alt="Webevora logo"
-              loading="eager"
+              loading="lazy"
               decoding="async"
             />
           </div>

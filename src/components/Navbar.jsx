@@ -110,9 +110,10 @@ function Navbar() {
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [simpleDropdownOpen, setSimpleDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [activeCategory, setActiveCategory] = useState(null);
   const navRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+  const progressLineRef = useRef(null);
 
   // Toggle mega menu on click
   const handleMegaMenuToggle = (e) => {
@@ -148,7 +149,9 @@ function Navbar() {
   // Click outside to close menus
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (navRef.current && !navRef.current.contains(e.target)) {
+      const clickedInsideNav = navRef.current && navRef.current.contains(e.target);
+      const clickedInsideMobileMenu = mobileMenuRef.current && mobileMenuRef.current.contains(e.target);
+      if (!clickedInsideNav && !clickedInsideMobileMenu) {
         closeAllMenus();
       }
     };
@@ -175,18 +178,45 @@ function Navbar() {
     closeAllMenus();
   }, [location.pathname]);
 
+  // Lock background scroll when mobile menu is open
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const isScrolled = scrollY > 20;
-      setScrolled(isScrolled);
-
-      // Calculate scroll progress
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight - windowHeight;
-      const progress = Math.min((scrollY / documentHeight) * 100, 100);
-      setScrollProgress(progress);
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
     };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const isScrolled = scrollY > 20;
+          setScrolled((prev) => (prev !== isScrolled ? isScrolled : prev));
+
+          // Calculate scroll progress
+          const windowHeight = window.innerHeight;
+          const documentHeight = document.documentElement.scrollHeight - windowHeight;
+          const progress = documentHeight > 0 ? Math.min((scrollY / documentHeight) * 100, 100) : 0;
+          
+          if (progressLineRef.current) {
+            progressLineRef.current.style.width = `${progress}%`;
+          }
+
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    // Run once to initialize
+    handleScroll();
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
@@ -195,11 +225,13 @@ function Navbar() {
   }, []);
 
   return (
+    <>
     <header className={`floating-navbar ${scrolled ? 'scrolled' : ''}`}>
       {/* Scroll Progress Line */}
       <div
+        ref={progressLineRef}
         className="navbar-progress-line"
-        style={{ width: `${scrollProgress}%` }}
+        style={{ width: '0%' }}
       />
       <div className="navbar-container" ref={navRef}>
         {/* Logo */}
@@ -277,7 +309,7 @@ function Navbar() {
                                 {item.megaMenuContent.categories[activeCategory].subcategories.map((subcategory, subIdx) => (
                                   <Link
                                     key={subIdx}
-                                    to={`/services/${subcategory.label.toLowerCase().replace(/\s+/g, '-')}`}
+                                    to={`/services#${item.megaMenuContent.categories[activeCategory].title.toLowerCase().replace(/\s+/g, '-')}`}
                                     className="nested-item"
                                     onClick={() => closeAllMenus()}
                                     role="menuitem"
@@ -362,88 +394,89 @@ function Navbar() {
           <span />
         </button>
       </div>
+    </header>
 
-      {/* Mobile Menu */}
-      <div className={`mobile-menu ${menuOpen ? 'is-open' : ''}`} id="mobile-nav">
-        <div className="mobile-menu-content">
-          {navItems.map((item, idx) => (
-            <div key={item.label || item.to} className="mobile-nav-item">
-              {item.megaMenuContent ? (
-                <div className="mobile-dropdown">
-                  <button
-                    className="mobile-dropdown-toggle"
-                    onClick={() => setMegaMenuOpen(!megaMenuOpen)}
-                  >
-                    {item.label}
-                    <span className={`mobile-dropdown-arrow ${megaMenuOpen ? 'is-open' : ''}`}>▼</span>
-                  </button>
-                  {megaMenuOpen && (
-                    <div className="mobile-dropdown-content">
-                      {item.megaMenuContent.categories.map((category, catIdx) => (
-                        <div key={catIdx} className="mobile-dropdown-column">
-                          <h5 className="mobile-dropdown-title">
-                            <span className="mobile-category-icon">{category.icon}</span>
-                            {category.title}
-                          </h5>
-                          {category.subcategories.map((subcategory, subIdx) => (
-                            <Link
-                              key={subIdx}
-                              to={`/services/${subcategory.label.toLowerCase().replace(/\s+/g, '-')}`}
-                              className="mobile-dropdown-item"
-                              onClick={() => setMenuOpen(false)}
-                            >
-                              {subcategory.label}
-                            </Link>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : item.children ? (
-                <div className="mobile-dropdown">
-                  <button
-                    className="mobile-dropdown-toggle"
-                    onClick={() => setSimpleDropdownOpen(!simpleDropdownOpen)}
-                  >
-                    {item.label}
-                    <span className={`mobile-dropdown-arrow ${simpleDropdownOpen ? 'is-open' : ''}`}>▼</span>
-                  </button>
-                  {simpleDropdownOpen && (
-                    <div className="mobile-dropdown-content simple-mobile-dropdown">
-                      {item.children.map((child, childIdx) => (
-                        <Link
-                          key={childIdx}
-                          to={child.to}
-                          className="mobile-dropdown-item"
-                          onClick={() => {
-                            setMenuOpen(false);
-                            setSimpleDropdownOpen(false);
-                          }}
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  to={item.to}
-                  className="mobile-nav-link"
-                  onClick={() => setMenuOpen(false)}
+    {/* Mobile Menu — rendered outside header to avoid transform containment breaking fixed positioning */}
+    <div ref={mobileMenuRef} className={`mobile-menu ${menuOpen ? 'is-open' : ''}`} id="mobile-nav">
+      <div className="mobile-menu-content">
+        {navItems.map((item, idx) => (
+          <div key={item.label || item.to} className="mobile-nav-item">
+            {item.megaMenuContent ? (
+              <div className="mobile-dropdown">
+                <button
+                  className="mobile-dropdown-toggle"
+                  onClick={() => setMegaMenuOpen(!megaMenuOpen)}
                 >
                   {item.label}
-                </Link>
-              )}
-            </div>
-          ))}
-          <Link to="/contact" className="mobile-cta" onClick={() => setMenuOpen(false)}>
-            Schedule a Call
-          </Link>
-        </div>
+                  <span className={`mobile-dropdown-arrow ${megaMenuOpen ? 'is-open' : ''}`}>▼</span>
+                </button>
+                {megaMenuOpen && (
+                  <div className="mobile-dropdown-content">
+                    {item.megaMenuContent.categories.map((category, catIdx) => (
+                      <div key={catIdx} className="mobile-dropdown-column">
+                        <h5 className="mobile-dropdown-title">
+                          <span className="mobile-category-icon">{category.icon}</span>
+                          {category.title}
+                        </h5>
+                        {category.subcategories.map((subcategory, subIdx) => (
+                          <Link
+                            key={subIdx}
+                            to={`/services#${category.title.toLowerCase().replace(/\s+/g, '-')}`}
+                            className="mobile-dropdown-item"
+                            onClick={() => setMenuOpen(false)}
+                          >
+                            {subcategory.label}
+                          </Link>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : item.children ? (
+              <div className="mobile-dropdown">
+                <button
+                  className="mobile-dropdown-toggle"
+                  onClick={() => setSimpleDropdownOpen(!simpleDropdownOpen)}
+                >
+                  {item.label}
+                  <span className={`mobile-dropdown-arrow ${simpleDropdownOpen ? 'is-open' : ''}`}>▼</span>
+                </button>
+                {simpleDropdownOpen && (
+                  <div className="mobile-dropdown-content simple-mobile-dropdown">
+                    {item.children.map((child, childIdx) => (
+                      <Link
+                        key={childIdx}
+                        to={child.to}
+                        className="mobile-dropdown-item"
+                        onClick={() => {
+                          setMenuOpen(false);
+                          setSimpleDropdownOpen(false);
+                        }}
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to={item.to}
+                className="mobile-nav-link"
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            )}
+          </div>
+        ))}
+        <Link to="/contact" className="mobile-cta" onClick={() => setMenuOpen(false)}>
+          Schedule a Call
+        </Link>
       </div>
-    </header>
+    </div>
+    </>
   );
 }
 

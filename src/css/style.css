@@ -79,7 +79,6 @@ main.container {
     padding-top: 120px;
     flex: 1;
     width: min(1150px, 92%);
-    transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hero section spacing to prevent navbar overlap */
@@ -88,18 +87,6 @@ main.container {
 .ar-hero,
 .contact-hero {
     margin-top: 20px;
-}
-
-/* Adjust hero spacing when navbar is scrolled */
-.floating-navbar.scrolled~main .container {
-    padding-top: 100px;
-}
-
-.floating-navbar.scrolled~main .home-hero,
-.floating-navbar.scrolled~main .about-hero,
-.floating-navbar.scrolled~main .ar-hero,
-.floating-navbar.scrolled~main .contact-hero {
-    margin-top: 10px;
 }
 
 /* Modern Floating Pill Navbar - Optimized */
@@ -121,9 +108,14 @@ main.container {
         0 20px 40px rgba(0, 0, 0, 0.3),
         0 8px 24px rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.4s ease,
+        height 0.4s ease;
     animation: navbarEntrance 0.8s ease-out;
-    will-change: transform, opacity;
+    will-change: transform, opacity, width, border-radius;
     z-index: 1000;
 }
 
@@ -473,7 +465,7 @@ main.container {
 }
 
 /* Expanded dropdown when submenu is active */
-.nested-dropdown-content.has-active~.nav-dropdown {
+.nav-dropdown:has(.nested-dropdown-content.has-active) {
     min-width: 600px;
     max-width: 800px;
 }
@@ -495,6 +487,7 @@ main.container {
         opacity: 0;
         transform: translateX(-50%) translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
@@ -1043,13 +1036,17 @@ main.container {
     }
 
     .navbar-container {
-        padding: 12px 24px;
+        padding: 0 24px;
         height: 56px;
+        display: flex;
+        align-items: center;
     }
 
     .floating-navbar.scrolled .navbar-container {
-        padding: 10px 20px;
+        padding: 0 20px;
         height: 48px;
+        display: flex;
+        align-items: center;
     }
 
     .navbar-logo {
@@ -1106,8 +1103,10 @@ main.container {
     }
 
     .navbar-container {
-        padding: 10px 16px;
+        padding: 0 16px;
         height: 50px;
+        display: flex;
+        align-items: center;
     }
 
     .navbar-logo {
@@ -1136,7 +1135,9 @@ main.container {
 
 @media (max-width: 360px) {
     .navbar-container {
-        padding: 8px 12px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
     }
 
     .navbar-logo {
@@ -10217,7 +10218,7 @@ body.page-loading {
 
 .simple-mobile-dropdown .mobile-dropdown-item {
     padding: 12px 20px;
-    color: rgba(255, 255, 255, 0.8);
+    color: #475569;
     text-decoration: none;
     transition: all 0.2s ease;
     font-size: 0.9rem;
@@ -10225,7 +10226,240 @@ body.page-loading {
 }
 
 .simple-mobile-dropdown .mobile-dropdown-item:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #ffffff;
-    border-left-color: #667eea;
+    background: rgba(37, 99, 235, 0.08);
+    color: #2563eb;
+    border-left-color: #2563eb;
+}
+
+/* ============================================================
+   MOBILE PERFORMANCE & RESPONSIVENESS OVERRIDES
+   Scoped to mobile breakpoints only — zero desktop impact.
+   ============================================================ */
+
+/* --- Global mobile overflow containment --- */
+@media (max-width: 768px) {
+
+    html,
+    body,
+    #root,
+    .app-shell {
+        overflow-x: hidden !important;
+    }
+
+    /* --- Mobile menu padding to clear the floating navbar --- */
+    .mobile-menu-content {
+        padding-top: 100px !important;
+    }
+
+    /* --- Fix 100vw breakout horizontal scroll --- */
+    .home-top-banner,
+    .page-banner {
+        width: 100% !important;
+        margin-left: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* --- Disable GPU-heavy backdrop filters on navbar --- */
+    .floating-navbar,
+    .floating-navbar.scrolled {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    /* --- Disable backdrop filter on mobile menu overlay --- */
+    .mobile-menu {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(0, 0, 0, 0.75) !important;
+    }
+
+    /* --- Hide heavy decorative animation layers on mobile --- */
+    .home-top-banner__orb,
+    .home-top-banner__beam,
+    .home-top-banner__rings,
+    .home-top-banner__pulse-line,
+    .home-top-banner__glow,
+    .home-top-banner__spark,
+    .home-top-banner__cursor-glow {
+        animation: none !important;
+        display: none !important;
+    }
+
+    /* Keep grid for texture but freeze animation */
+    .home-top-banner__grid {
+        animation: none !important;
+        opacity: 0.12 !important;
+    }
+
+    /* --- Improve touch target sizing on mobile dropdowns --- */
+    .mobile-dropdown-item {
+        padding: 12px 16px !important;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .mobile-nav-link,
+    .mobile-dropdown-toggle {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* --- Mobile Performance & Lag Optimization Overrides --- */
+
+    /* 1. Disable expensive backdrop-filters and simplify card backgrounds and shadows on mobile */
+    .service-card,
+    .service-card--stack,
+    .home-highlight-card,
+    .home-process-card,
+    .home-trust__item,
+    .services-why__card,
+    .blog-card,
+    .contact-form,
+    .contact-card,
+    .services-slider-card,
+    .nav-dropdown,
+    .simple-dropdown {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05) !important;
+        border-color: rgba(15, 23, 42, 0.08) !important;
+    }
+
+    /* 2. Freeze rendering-heavy transitions and animations on scroll */
+    .sr-reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+        will-change: auto !important;
+    }
+
+    /* 3. Disable heavy floating/glowing animations on the chatbot to save GPU cycles on scroll */
+    .chatbot-container,
+    .chatbot-container * {
+        animation: none !important;
+        transition: none !important;
+        will-change: auto !important;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1) !important;
+    }
+
+    /* 4. Disable will-change GPU allocation on mobile to prevent memory exhaustion */
+    .home-top-banner__orb,
+    .home-top-banner__grid,
+    .home-top-banner__beam,
+    .home-top-banner__pulse-line,
+    .home-top-banner__glow,
+    .home-top-banner__spark,
+    .home-top-banner__rings,
+    .home-top-banner__visual-card,
+    .contact-hero__orb,
+    .about-hero__orb,
+    .services-shared-hero__orbit-ring,
+    .services-shared-hero__orbit-dot,
+    .services-marquee__track,
+    .services-marquee__card,
+    .products-hero-pulse-dot,
+    .contact-bg,
+    .about-photo,
+    .contact-photo,
+    .home-image,
+    .home-ring-spinner,
+    .services-coverflow-card--marquee,
+    .services-orb-dot,
+    .mobile-dropdown-content,
+    .about-stats,
+    .about-value-card,
+    .products-hero-stats,
+    .products-card,
+    .ar-values-card,
+    .ar-process-step {
+        will-change: auto !important;
+        transform: none !important;
+        animation: none !important;
+    }
+
+    /* 5. Force horizontal overflow containment to prevent scroll jitter */
+    html, body {
+        overflow-x: hidden !important;
+        position: relative;
+    }
+}
+
+/* --- 480px breakpoint refinements --- */
+@media (max-width: 480px) {
+    .mobile-menu-content {
+        padding-top: 84px !important;
+    }
+}
+
+/* ============================================================
+   GLOBAL HARDWARE ACCELERATION & PERFORMANCE OPTIMIZATIONS
+   ============================================================ */
+
+/* Force GPU compositing for infinite animations */
+.home-top-banner__orb,
+.home-top-banner__grid,
+.home-top-banner__beam,
+.home-top-banner__pulse-line,
+.home-top-banner__glow,
+.home-top-banner__spark,
+.home-top-banner__rings,
+.home-top-banner__visual-card,
+.contact-hero__orb,
+.about-hero__orb,
+.services-shared-hero__orbit-ring,
+.services-shared-hero__orbit-dot,
+.services-marquee__track,
+.services-marquee__card,
+.products-hero-pulse-dot,
+.contact-bg,
+.about-photo,
+.contact-photo,
+.home-image,
+.home-ring-spinner,
+.services-coverflow-card--marquee,
+.services-orb-dot {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+/* Force GPU compositing for heavy backdrop-filter elements */
+.mobile-dropdown-content,
+.about-stats,
+.about-value-card,
+.products-hero-stats,
+.products-card,
+.ar-values-card,
+.ar-process-step {
+    will-change: transform, backdrop-filter;
+    transform: translateZ(0);
+}
+
+/* ============================================================
+   SMOOTH SCROLLING (LENIS)
+   ============================================================ */
+html.lenis,
+html.lenis body {
+    height: auto;
+}
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+    overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+    pointer-events: none;
 }
